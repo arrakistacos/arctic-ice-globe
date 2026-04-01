@@ -18,11 +18,11 @@
     /* ── Bottom controls ── */
     #controls {
       position: fixed; bottom: 0; left: 0; right: 0;
-      background: rgba(0, 5, 20, 0.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      padding: 14px 32px 16px;
-      border-top: 1px solid rgba(100, 160, 255, 0.2);
+      background: rgba(0, 4, 18, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 14px 32px 14px;
+      border-top: 1px solid rgba(80, 140, 255, 0.18);
     }
     .controls-top {
       display: flex;
@@ -44,15 +44,21 @@
       margin-top: 4px;
     }
     #change-display {
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       margin-top: 3px;
     }
     .loss { color: #ff6666; }
     .gain { color: #66ffbb; }
     .neutral { color: #aac8ff; }
 
-    #autoplay-btn {
+    .right-controls {
       margin-left: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+    #autoplay-btn {
       background: rgba(96, 207, 255, 0.12);
       border: 1px solid rgba(96, 207, 255, 0.35);
       color: #60cfff;
@@ -64,7 +70,6 @@
       letter-spacing: 0.07em;
       transition: background 0.2s, border-color 0.2s;
       white-space: nowrap;
-      flex-shrink: 0;
     }
     #autoplay-btn:hover {
       background: rgba(96, 207, 255, 0.25);
@@ -76,76 +81,72 @@
       color: #ffaa55;
     }
 
-    input[type=range] {
+    /* ── Sparkline chart ── */
+    #sparkline-wrap {
+      position: relative;
       width: 100%;
-      margin: 10px 0 5px;
+      height: 54px;
+      margin: 6px 0 2px;
+    }
+    #sparkline-canvas {
+      display: block;
+      width: 100%;
+      height: 54px;
+    }
+    input[type=range] {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      width: 100%;
+      height: 54px;
+      margin: 0;
       accent-color: #60cfff;
       cursor: pointer;
-      height: 4px;
+      opacity: 0;
+      z-index: 2;
     }
     .slider-labels {
       display: flex;
       justify-content: space-between;
-      font-size: 0.72rem;
-      color: #445566;
-      margin-bottom: 6px;
+      font-size: 0.7rem;
+      color: #3a4f66;
+      margin-bottom: 4px;
     }
 
     /* ── Info card (top-left) ── */
     #info-card {
-      position: fixed; top: 24px; left: 24px;
-      background: rgba(0, 5, 20, 0.76);
-      border: 1px solid rgba(100, 160, 255, 0.22);
+      position: fixed; top: 20px; left: 20px;
+      background: rgba(0, 4, 18, 0.72);
+      border: 1px solid rgba(80, 140, 255, 0.18);
       border-radius: 12px;
-      padding: 16px 20px;
-      max-width: 272px;
-      font-size: 0.8rem;
+      padding: 14px 18px;
+      max-width: 260px;
+      font-size: 0.78rem;
       line-height: 1.6;
-      color: #aac8ff;
+      color: #8899bb;
       pointer-events: none;
       user-select: none;
     }
     #info-card h3 {
       color: #60cfff;
-      margin: 0 0 6px;
-      font-size: 1rem;
+      margin: 0 0 5px;
+      font-size: 0.95rem;
       font-weight: 600;
-      letter-spacing: 0.01em;
     }
-    #info-card .subtitle {
-      color: #7799bb;
-      font-size: 0.78rem;
-      margin-bottom: 6px;
-    }
-    #info-card .source {
-      color: #4d6a88;
-      font-size: 0.72rem;
-      line-height: 1.5;
-      margin-bottom: 10px;
-    }
-    .stats-divider {
-      border: none;
-      border-top: 1px solid rgba(100, 160, 255, 0.18);
-      margin: 10px 0 10px;
-    }
-    .stat-line {
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
-      margin-bottom: 3px;
-    }
-    .stat-dot { flex-shrink: 0; }
+    #info-card .subtitle { color: #6688aa; font-size: 0.74rem; margin-bottom: 5px; }
+    #info-card .source { color: #3d5570; font-size: 0.68rem; line-height: 1.5; margin-bottom: 8px; }
+    .stats-divider { border: none; border-top: 1px solid rgba(80, 140, 255, 0.14); margin: 8px 0; }
+    .stat-line { display: flex; align-items: baseline; gap: 6px; margin-bottom: 2px; font-size: 0.76rem; }
 
-    /* ── Event flash label ── */
+    /* ── Event flash ── */
     #event-label {
       position: fixed;
-      top: 42%;
+      top: 38%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(20, 0, 0, 0.75);
-      border: 1px solid rgba(255, 80, 80, 0.45);
+      background: rgba(15, 0, 5, 0.82);
+      border: 1px solid rgba(255, 70, 70, 0.45);
       border-radius: 10px;
-      padding: 10px 20px;
+      padding: 10px 22px;
       font-size: 0.95rem;
       color: #ffaaaa;
       text-align: center;
@@ -155,8 +156,6 @@
       transition: opacity 0.5s ease;
       white-space: nowrap;
     }
-
-    /* ── Record badge ── */
     #record-badge {
       display: inline-flex;
       align-items: center;
@@ -170,30 +169,23 @@
       font-weight: 600;
       opacity: 0;
       transition: opacity 0.4s;
-      vertical-align: middle;
     }
-
-    /* ── Sources footer ── */
     .sources-footer {
-      margin-top: 6px;
-      font-size: 0.63rem;
-      color: #334455;
+      margin-top: 4px;
+      font-size: 0.6rem;
+      color: #2a3d52;
       text-align: center;
       line-height: 1.5;
     }
-    .sources-footer a {
-      color: #4d6a88;
-      text-decoration: none;
-    }
+    .sources-footer a { color: #3d5a77; text-decoration: none; }
     .sources-footer a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
   <div id="canvas-container"></div>
 
-  <!-- Info card -->
   <div id="info-card">
-    <h3>Arctic Sea Ice Minimum Extent</h3>
+    <h3>Arctic Sea Ice Minimum</h3>
     <div class="subtitle">September annual minimum, 1979–2024</div>
     <div class="source">
       Source: NSIDC Sea Ice Index v3<br>
@@ -201,35 +193,37 @@
       nsidc.org/data/seaice_index
     </div>
     <hr class="stats-divider">
-    <div class="stat-line"><span class="stat-dot" style="color:#60cfff">◼</span><span>1979 baseline: 7.05 M km²</span></div>
-    <div class="stat-line"><span class="stat-dot" style="color:#ff5555">◼</span><span>2012 record low: 3.41 M km²</span></div>
-    <div class="stat-line"><span class="stat-dot" style="color:#aac8ff">◼</span><span>2024 extent: 4.28 M km²</span></div>
-    <div class="stat-line"><span class="stat-dot" style="color:#ff9966">◼</span><span>Total loss: ~39% since 1979</span></div>
+    <div class="stat-line"><span style="color:#60cfff">◼</span> 1979 baseline: 7.05 M km²</div>
+    <div class="stat-line"><span style="color:#ff5555">◼</span> 2012 record low: 3.41 M km²</div>
+    <div class="stat-line"><span style="color:#aac8ff">◼</span> 2024 extent: 4.28 M km²</div>
+    <div class="stat-line"><span style="color:#ff9966">◼</span> Total loss: ~39% since 1979</div>
   </div>
 
-  <!-- Notable year flash -->
   <div id="event-label"></div>
 
-  <!-- Controls -->
   <div id="controls">
     <div class="controls-top">
       <div>
         <div id="year-display">
           <span id="year-text">1979</span>
-          <span id="record-badge">🚨 RECORD LOW</span>
+          <span id="record-badge">RECORD LOW</span>
         </div>
         <div id="extent-display">Extent: 7.05 M km²</div>
         <div id="change-display" class="neutral">Baseline year</div>
       </div>
-      <button id="autoplay-btn">▶ AUTOPLAY</button>
+      <div class="right-controls">
+        <button id="autoplay-btn">▶ AUTOPLAY</button>
+      </div>
     </div>
-    <input type="range" id="scrubber" min="0" max="4500" value="0" step="1">
+    <div id="sparkline-wrap">
+      <canvas id="sparkline-canvas"></canvas>
+      <input type="range" id="scrubber" min="0" max="4500" value="0" step="1">
+    </div>
     <div class="slider-labels">
-      <span>1979</span><span>1990</span><span>2000</span><span>2010</span><span>2024</span>
+      <span>1979</span><span>1985</span><span>1990</span><span>1995</span><span>2000</span><span>2005</span><span>2010</span><span>2015</span><span>2020</span><span>2024</span>
     </div>
     <div class="sources-footer">
-      Data: NSIDC Sea Ice Index v3 — Fetterer, F., K. Knowles, W. N. Meier, M. Savoie, and A. K. Windnagel. 2017, updated 2024.
-      Sea Ice Index, Version 3. Boulder, CO: NSIDC.
+      NSIDC Sea Ice Index v3 — Fetterer et al. 2017, updated 2024. Boulder, CO: NSIDC.
       <a href="https://doi.org/10.7265/N5K072F8" target="_blank">doi.org/10.7265/N5K072F8</a>
       &nbsp;|&nbsp;
       <a href="https://github.com/arrakistacos/arctic-ice-globe" target="_blank">arrakistacos/arctic-ice-globe</a>
@@ -239,202 +233,344 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <script>
-    // ── Data ────────────────────────────────────────────────────────────────
+    /* ══════════════════════════════════════════════════════════════════════
+       DATA
+       ══════════════════════════════════════════════════════════════════════ */
     const ICE_DATA = [
-      { year: 1979, extent: 7.05 },
-      { year: 1980, extent: 7.85 },
-      { year: 1981, extent: 7.25 },
-      { year: 1982, extent: 7.45 },
-      { year: 1983, extent: 7.52 },
-      { year: 1984, extent: 7.18 },
-      { year: 1985, extent: 6.93 },
-      { year: 1986, extent: 7.54 },
-      { year: 1987, extent: 7.48 },
-      { year: 1988, extent: 7.49 },
-      { year: 1989, extent: 7.04 },
-      { year: 1990, extent: 6.24 },
-      { year: 1991, extent: 6.55 },
-      { year: 1992, extent: 7.55 },
-      { year: 1993, extent: 6.50 },
-      { year: 1994, extent: 7.18 },
-      { year: 1995, extent: 6.13 },
-      { year: 1996, extent: 7.88 },
-      { year: 1997, extent: 6.74 },
-      { year: 1998, extent: 6.56 },
-      { year: 1999, extent: 6.24 },
-      { year: 2000, extent: 6.32 },
-      { year: 2001, extent: 6.75 },
-      { year: 2002, extent: 5.96 },
-      { year: 2003, extent: 6.15 },
-      { year: 2004, extent: 6.05 },
-      { year: 2005, extent: 5.57 },
-      { year: 2006, extent: 5.92 },
-      { year: 2007, extent: 4.17 },
-      { year: 2008, extent: 4.67 },
-      { year: 2009, extent: 5.10 },
-      { year: 2010, extent: 4.90 },
-      { year: 2011, extent: 4.61 },
-      { year: 2012, extent: 3.41 },
-      { year: 2013, extent: 5.10 },
-      { year: 2014, extent: 5.02 },
-      { year: 2015, extent: 4.41 },
-      { year: 2016, extent: 4.14 },
-      { year: 2017, extent: 4.64 },
-      { year: 2018, extent: 4.59 },
-      { year: 2019, extent: 4.14 },
-      { year: 2020, extent: 3.74 },
-      { year: 2021, extent: 4.72 },
-      { year: 2022, extent: 4.87 },
-      { year: 2023, extent: 4.23 },
-      { year: 2024, extent: 4.28 },
+      { year: 1979, extent: 7.05 }, { year: 1980, extent: 7.85 },
+      { year: 1981, extent: 7.25 }, { year: 1982, extent: 7.45 },
+      { year: 1983, extent: 7.52 }, { year: 1984, extent: 7.18 },
+      { year: 1985, extent: 6.93 }, { year: 1986, extent: 7.54 },
+      { year: 1987, extent: 7.48 }, { year: 1988, extent: 7.49 },
+      { year: 1989, extent: 7.04 }, { year: 1990, extent: 6.24 },
+      { year: 1991, extent: 6.55 }, { year: 1992, extent: 7.55 },
+      { year: 1993, extent: 6.50 }, { year: 1994, extent: 7.18 },
+      { year: 1995, extent: 6.13 }, { year: 1996, extent: 7.88 },
+      { year: 1997, extent: 6.74 }, { year: 1998, extent: 6.56 },
+      { year: 1999, extent: 6.24 }, { year: 2000, extent: 6.32 },
+      { year: 2001, extent: 6.75 }, { year: 2002, extent: 5.96 },
+      { year: 2003, extent: 6.15 }, { year: 2004, extent: 6.05 },
+      { year: 2005, extent: 5.57 }, { year: 2006, extent: 5.92 },
+      { year: 2007, extent: 4.17 }, { year: 2008, extent: 4.67 },
+      { year: 2009, extent: 5.10 }, { year: 2010, extent: 4.90 },
+      { year: 2011, extent: 4.61 }, { year: 2012, extent: 3.41 },
+      { year: 2013, extent: 5.10 }, { year: 2014, extent: 5.02 },
+      { year: 2015, extent: 4.41 }, { year: 2016, extent: 4.14 },
+      { year: 2017, extent: 4.64 }, { year: 2018, extent: 4.59 },
+      { year: 2019, extent: 4.14 }, { year: 2020, extent: 3.74 },
+      { year: 2021, extent: 4.72 }, { year: 2022, extent: 4.87 },
+      { year: 2023, extent: 4.23 }, { year: 2024, extent: 4.28 },
     ];
-
     const NOTABLE = {
       2007: 'Previous record low (4.17 M km²)',
-      2012: '🚨 ALL-TIME RECORD LOW (3.41 M km²)',
+      2012: 'ALL-TIME RECORD LOW (3.41 M km²)',
       2020: '2nd lowest on record (3.74 M km²)',
     };
+    const BASELINE = ICE_DATA[0].extent;
+    const MAX_EXT  = Math.max(...ICE_DATA.map(d => d.extent));
+    const MIN_EXT  = Math.min(...ICE_DATA.map(d => d.extent));
 
-    const BASELINE = ICE_DATA[0].extent; // 7.05
+    /* ══════════════════════════════════════════════════════════════════════
+       SPARKLINE  – 2D canvas chart behind the scrubber
+       ══════════════════════════════════════════════════════════════════════ */
+    const sparkCanvas = document.getElementById('sparkline-canvas');
+    const sparkCtx    = sparkCanvas.getContext('2d');
 
-    // ── Scene ────────────────────────────────────────────────────────────────
+    function drawSparkline(frac) {
+      const rect = sparkCanvas.parentElement.getBoundingClientRect();
+      const dpr  = window.devicePixelRatio || 1;
+      sparkCanvas.width  = rect.width  * dpr;
+      sparkCanvas.height = rect.height * dpr;
+      sparkCtx.scale(dpr, dpr);
+      const W = rect.width, H = rect.height;
+      const pad = { t: 6, b: 6, l: 0, r: 0 };
+      const cW = W - pad.l - pad.r, cH = H - pad.t - pad.b;
+
+      sparkCtx.clearRect(0, 0, W, H);
+
+      // Fill under the curve
+      sparkCtx.beginPath();
+      ICE_DATA.forEach((d, i) => {
+        const x = pad.l + (i / (ICE_DATA.length - 1)) * cW;
+        const y = pad.t + (1 - (d.extent - MIN_EXT + 0.3) / (MAX_EXT - MIN_EXT + 0.6)) * cH;
+        i === 0 ? sparkCtx.moveTo(x, y) : sparkCtx.lineTo(x, y);
+      });
+      // close under
+      sparkCtx.lineTo(pad.l + cW, pad.t + cH);
+      sparkCtx.lineTo(pad.l, pad.t + cH);
+      sparkCtx.closePath();
+      const grad = sparkCtx.createLinearGradient(0, pad.t, 0, pad.t + cH);
+      grad.addColorStop(0, 'rgba(96,207,255,0.18)');
+      grad.addColorStop(1, 'rgba(96,207,255,0.02)');
+      sparkCtx.fillStyle = grad;
+      sparkCtx.fill();
+
+      // Line
+      sparkCtx.beginPath();
+      ICE_DATA.forEach((d, i) => {
+        const x = pad.l + (i / (ICE_DATA.length - 1)) * cW;
+        const y = pad.t + (1 - (d.extent - MIN_EXT + 0.3) / (MAX_EXT - MIN_EXT + 0.6)) * cH;
+        i === 0 ? sparkCtx.moveTo(x, y) : sparkCtx.lineTo(x, y);
+      });
+      sparkCtx.strokeStyle = 'rgba(96,207,255,0.55)';
+      sparkCtx.lineWidth = 1.5;
+      sparkCtx.stroke();
+
+      // Trend line (linear regression)
+      const n = ICE_DATA.length;
+      let sx=0,sy=0,sxy=0,sx2=0;
+      ICE_DATA.forEach((d,i)=>{ sx+=i; sy+=d.extent; sxy+=i*d.extent; sx2+=i*i; });
+      const slope = (n*sxy - sx*sy)/(n*sx2 - sx*sx);
+      const inter = (sy - slope*sx)/n;
+      const y0 = pad.t + (1 - (inter - MIN_EXT + 0.3) / (MAX_EXT - MIN_EXT + 0.6)) * cH;
+      const y1 = pad.t + (1 - (inter+slope*(n-1) - MIN_EXT + 0.3) / (MAX_EXT - MIN_EXT + 0.6)) * cH;
+      sparkCtx.beginPath();
+      sparkCtx.moveTo(pad.l, y0);
+      sparkCtx.lineTo(pad.l + cW, y1);
+      sparkCtx.strokeStyle = 'rgba(255,100,100,0.35)';
+      sparkCtx.lineWidth = 1;
+      sparkCtx.setLineDash([4,4]);
+      sparkCtx.stroke();
+      sparkCtx.setLineDash([]);
+
+      // Current position dot + vertical line
+      const cx = pad.l + (frac / (ICE_DATA.length - 1)) * cW;
+      const curExt = getExtent(frac);
+      const cy = pad.t + (1 - (curExt - MIN_EXT + 0.3) / (MAX_EXT - MIN_EXT + 0.6)) * cH;
+
+      sparkCtx.beginPath();
+      sparkCtx.moveTo(cx, pad.t);
+      sparkCtx.lineTo(cx, pad.t + cH);
+      sparkCtx.strokeStyle = 'rgba(96,207,255,0.25)';
+      sparkCtx.lineWidth = 1;
+      sparkCtx.stroke();
+
+      sparkCtx.beginPath();
+      sparkCtx.arc(cx, cy, 4, 0, Math.PI * 2);
+      sparkCtx.fillStyle = '#60cfff';
+      sparkCtx.fill();
+      sparkCtx.beginPath();
+      sparkCtx.arc(cx, cy, 7, 0, Math.PI * 2);
+      sparkCtx.strokeStyle = 'rgba(96,207,255,0.4)';
+      sparkCtx.lineWidth = 1.5;
+      sparkCtx.stroke();
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════
+       THREE.JS SCENE
+       ══════════════════════════════════════════════════════════════════════ */
     const container = document.getElementById('canvas-container');
-    let W = container.clientWidth, H = container.clientHeight;
+    let cW = container.clientWidth, cH = container.clientHeight;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000510);
+    // Fog for depth
+    scene.fog = new THREE.FogExp2(0x000510, 0.0015);
 
-    const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 1000);
-    camera.position.set(0.3, 2.8, 1.9); // steeper angle — north pole clearly visible
+    const camera = new THREE.PerspectiveCamera(38, cW / cH, 0.1, 1200);
+    camera.position.set(0.3, 3.2, 3.4);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(W, H);
+    renderer.setSize(cW, cH);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.localClippingEnabled = true;
     container.appendChild(renderer.domElement);
 
-    // ── Stars ────────────────────────────────────────────────────────────────
-    const starPositions = new Float32Array(3000 * 3);
-    for (let i = 0; i < 9000; i++) starPositions[i] = (Math.random() - 0.5) * 400;
-    const starGeo = new THREE.BufferGeometry();
-    starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-    scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.15 })));
+    /* ── Stars (multi-layer) ─────────────────────────────────────────────── */
+    function makeStars(count, spread, size, color) {
+      const pos = new Float32Array(count * 3);
+      for (let i = 0; i < count * 3; i++) pos[i] = (Math.random() - 0.5) * spread;
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      return new THREE.Points(g, new THREE.PointsMaterial({
+        color, size, transparent: true, opacity: 0.9, depthWrite: false,
+      }));
+    }
+    scene.add(makeStars(6000, 600, 0.12, 0xffffff));
+    scene.add(makeStars(2000, 500, 0.28, 0xaabbff));
+    scene.add(makeStars( 400, 400, 0.55, 0xddeeff));
 
-    // ── Lighting ─────────────────────────────────────────────────────────────
-    scene.add(new THREE.AmbientLight(0x334455, 1.3));
-    const sun = new THREE.DirectionalLight(0xfff5e0, 2.5);
+    /* ── Lighting ─────────────────────────────────────────────────────────── */
+    scene.add(new THREE.AmbientLight(0x223344, 1.5));
+    const sun = new THREE.DirectionalLight(0xfff5e0, 2.8);
     sun.position.set(5, 3, 5);
     scene.add(sun);
-    const fill = new THREE.DirectionalLight(0x4466aa, 0.4);
-    fill.position.set(-5, -2, -3);
+    const fill = new THREE.DirectionalLight(0x3355aa, 0.5);
+    fill.position.set(-4, -1, -4);
     scene.add(fill);
+    // Polar highlight from above
+    const topLight = new THREE.DirectionalLight(0xaaddff, 0.8);
+    topLight.position.set(0, 6, 0);
+    scene.add(topLight);
 
-    // ── Earth ────────────────────────────────────────────────────────────────
-    const loader = new THREE.TextureLoader();
-    const earthTex  = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg');
-    const earthSpec = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_specular_2048.jpg');
+    /* ── Earth ────────────────────────────────────────────────────────────── */
+    const tl = new THREE.TextureLoader();
+    const earthTex  = tl.load('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg');
+    const earthSpec = tl.load('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_specular_2048.jpg');
 
     const globe = new THREE.Mesh(
       new THREE.SphereGeometry(1, 64, 64),
       new THREE.MeshPhongMaterial({
-        map: earthTex,
-        specularMap: earthSpec,
-        specular: new THREE.Color(0x4488ff),
-        shininess: 25,
+        map: earthTex, specularMap: earthSpec,
+        specular: new THREE.Color(0x3366aa), shininess: 20,
       })
     );
     scene.add(globe);
 
-    // Atmosphere glow
-    scene.add(new THREE.Mesh(
-      new THREE.SphereGeometry(1.022, 64, 64),
+    // Atmosphere: two-layer glow
+    const atmoInner = new THREE.Mesh(
+      new THREE.SphereGeometry(1.015, 64, 64),
       new THREE.MeshPhongMaterial({
-        color: 0x3366cc,
-        transparent: true,
-        opacity: 0.07,
-        side: THREE.FrontSide,
+        color: 0x4488dd, transparent: true, opacity: 0.06, side: THREE.FrontSide, depthWrite: false,
       })
-    ));
+    );
+    scene.add(atmoInner);
+    const atmoOuter = new THREE.Mesh(
+      new THREE.SphereGeometry(1.06, 64, 64),
+      new THREE.MeshPhongMaterial({
+        color: 0x2255aa, transparent: true, opacity: 0.03, side: THREE.BackSide, depthWrite: false,
+      })
+    );
+    scene.add(atmoOuter);
 
-    // ── Ice cap — SphereGeometry polar cap (thetaLength approach) ────────────
-    // Using SphereGeometry(thetaStart=0, thetaLength=capAngle) is the most
-    // reliable way to render a polar cap: it generates the actual vertices for
-    // the cap region and doesn't rely on clipping plane uniforms.
-    //
-    // Formula: spherical-cap area A = 2πR²(1−cosθ)  →  cosθ = 1 − A/(2πR²)
-    // The September-minimum extents (7.05 → 3.41 M km²) map to colatitudes
-    // of ~27° → ~19° in visual space (we apply a 2× visual scale so the
-    // change is clearly readable on screen while keeping the data labels exact).
+    /* ══════════════════════════════════════════════════════════════════════
+       ICE CAP  (SphereGeometry polar cap + glow ring + ice particles)
+       ══════════════════════════════════════════════════════════════════════ */
 
+    // Group holds ice mesh + ring + glow — all rotate together
+    const iceGroup = new THREE.Group();
+    scene.add(iceGroup);
+
+    // -- ice surface material (vertex-colored: white at pole → blue at edge)
     const iceMat = new THREE.MeshPhongMaterial({
-      color: 0xe8f4ff,
-      emissive: 0x99ccee,
-      emissiveIntensity: 0.35,
-      shininess: 140,
+      vertexColors: true,
+      emissive: 0x88bbdd,
+      emissiveIntensity: 0.3,
+      shininess: 160,
       specular: new THREE.Color(0xffffff),
       transparent: true,
-      opacity: 0.93,
+      opacity: 0.94,
       side: THREE.DoubleSide,
       depthWrite: false,
     });
 
-    const iceEdgeMat = new THREE.MeshBasicMaterial({
-      color: 0x88ddff,
-      transparent: true,
-      opacity: 0.6,
-      side: THREE.DoubleSide,
-      depthWrite: false,
+    // -- edge ring material (bright cyan glow)
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0x66ddff, transparent: true, opacity: 0.7, depthWrite: false, side: THREE.DoubleSide,
+    });
+    // -- wider glow ring
+    const glowRingMat = new THREE.MeshBasicMaterial({
+      color: 0x44aaff, transparent: true, opacity: 0.15, depthWrite: false, side: THREE.DoubleSide,
     });
 
-    // Start with a placeholder geometry; rebuilt in updateIceCap
-    let iceMesh     = new THREE.Mesh(new THREE.SphereGeometry(1.004, 64, 16, 0, Math.PI*2, 0, 0.01), iceMat);
-    let iceRingMesh = new THREE.Mesh(new THREE.TorusGeometry(0.01, 0.003, 8, 64), iceEdgeMat);
-    scene.add(iceMesh);
-    scene.add(iceRingMesh);
+    let iceMesh    = new THREE.Mesh(new THREE.BufferGeometry(), iceMat);
+    let ringMesh   = new THREE.Mesh(new THREE.BufferGeometry(), ringMat);
+    let glowMesh   = new THREE.Mesh(new THREE.BufferGeometry(), glowRingMat);
+    iceGroup.add(iceMesh);
+    iceGroup.add(ringMesh);
+    iceGroup.add(glowMesh);
 
-    // Convert extent (M km²) to colatitude angle (radians from north pole)
-    // Visual scale factor 2.0 makes the change obvious on screen; labels show real data.
-    const VISUAL_SCALE = 2.0;
-    function extentToCapAngle(extentMkm2) {
-      const R    = 6371;
-      const area = extentMkm2 * 1e6;
+    // -- Ice shimmer particles
+    const PARTICLE_COUNT = 600;
+    const particlePos = new Float32Array(PARTICLE_COUNT * 3);
+    const particleAlphas = new Float32Array(PARTICLE_COUNT);
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      // random positions on the unit sphere above latitude ~60°N (colatitude < 30°)
+      const theta = Math.random() * 0.55; // colatitude 0–32°
+      const phi   = Math.random() * Math.PI * 2;
+      const r     = 1.01 + Math.random() * 0.06;
+      particlePos[i*3]     = r * Math.sin(theta) * Math.cos(phi);
+      particlePos[i*3 + 1] = r * Math.cos(theta);
+      particlePos[i*3 + 2] = r * Math.sin(theta) * Math.sin(phi);
+      particleAlphas[i]    = Math.random();
+    }
+    const particleGeo = new THREE.BufferGeometry();
+    particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePos, 3));
+    const particleMesh = new THREE.Points(particleGeo, new THREE.PointsMaterial({
+      color: 0xccf0ff, size: 0.012, transparent: true, opacity: 0.5, depthWrite: false,
+    }));
+    iceGroup.add(particleMesh);
+
+    // Visual scale: multiply physical colatitude so the cap fills ~30°–18° on screen
+    const VIS_SCALE = 2.0;
+
+    function extentToCapAngle(ext) {
+      const R = 6371, area = ext * 1e6;
       const cosC = Math.max(-1, Math.min(1, 1 - area / (2 * Math.PI * R * R)));
-      return Math.acos(cosC) * VISUAL_SCALE;
+      return Math.acos(cosC) * VIS_SCALE;
     }
 
-    let _lastCapAngle = -1;
+    // Rebuild ice cap geometry with vertex colors
+    function buildIceGeo(capAngle) {
+      const g = new THREE.SphereGeometry(1.005, 80, 24, 0, Math.PI*2, 0, capAngle);
+      // add vertex colors: white at pole (theta=0) → icy blue at edge (theta=capAngle)
+      const pos  = g.attributes.position;
+      const cols = new Float32Array(pos.count * 3);
+      for (let i = 0; i < pos.count; i++) {
+        const y = pos.getY(i);
+        // t goes 0 (pole, y≈1) → 1 (edge, y≈cos(capAngle))
+        const edgeY = Math.cos(capAngle);
+        const t = Math.max(0, Math.min(1, (1 - y) / Math.max(0.001, 1 - edgeY)));
+        // White → icy blue-cyan
+        cols[i*3]     = 1.0 - t * 0.25;                     // R
+        cols[i*3 + 1] = 1.0 - t * 0.12;                     // G
+        cols[i*3 + 2] = 1.0;                                 // B
+      }
+      g.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+      return g;
+    }
 
-    function updateIceCap(extentMkm2) {
-      const capAngle = Math.min(extentToCapAngle(extentMkm2), Math.PI * 0.48);
-      if (Math.abs(capAngle - _lastCapAngle) < 0.0008) return;
-      _lastCapAngle = capAngle;
+    let _prevAngle = -1;
 
-      // Rebuild polar-cap geometry
+    function updateIceCap(ext) {
+      const capAngle = Math.min(extentToCapAngle(ext), Math.PI * 0.47);
+      if (Math.abs(capAngle - _prevAngle) < 0.0007) return;
+      _prevAngle = capAngle;
+
+      // Ice surface
       iceMesh.geometry.dispose();
-      iceMesh.geometry = new THREE.SphereGeometry(1.004, 64, 20, 0, Math.PI * 2, 0, capAngle);
+      iceMesh.geometry = buildIceGeo(capAngle);
 
-      // Reposition the edge ring at the cap boundary latitude
-      const edgeY = Math.cos(capAngle);              // world-space Y of ice edge
-      const edgeR = Math.sin(capAngle) * 1.0045;     // horizontal radius of edge circle
-      iceRingMesh.geometry.dispose();
-      iceRingMesh.geometry = new THREE.TorusGeometry(edgeR, 0.004, 8, 80);
-      iceRingMesh.position.y  = edgeY;
-      iceRingMesh.rotation.x  = Math.PI / 2;
+      // Edge ring: torus at the cap boundary, lying flat (XZ plane)
+      const edgeY = Math.cos(capAngle);
+      const edgeR = Math.sin(capAngle) * 1.006;
+
+      ringMesh.geometry.dispose();
+      ringMesh.geometry = new THREE.TorusGeometry(edgeR, 0.005, 8, 96);
+      ringMesh.position.set(0, edgeY, 0);
+      ringMesh.rotation.set(Math.PI/2, 0, 0);  // flat in XZ
+
+      glowMesh.geometry.dispose();
+      glowMesh.geometry = new THREE.TorusGeometry(edgeR, 0.03, 8, 96);
+      glowMesh.position.set(0, edgeY, 0);
+      glowMesh.rotation.set(Math.PI/2, 0, 0);
+
+      // Show particles only within the cap
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const theta = Math.random() * capAngle * 0.95;
+        const phi   = Math.random() * Math.PI * 2;
+        const r     = 1.008 + Math.random() * 0.05;
+        particlePos[i*3]     = r * Math.sin(theta) * Math.cos(phi);
+        particlePos[i*3 + 1] = r * Math.cos(theta);
+        particlePos[i*3 + 2] = r * Math.sin(theta) * Math.sin(phi);
+      }
+      particleGeo.attributes.position.needsUpdate = true;
     }
 
-    // ── OrbitControls ─────────────────────────────────────────────────────────
+    /* ── OrbitControls ───────────────────────────────────────────────────── */
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.minDistance = 1.5;
-    controls.maxDistance = 6;
-    controls.autoRotate = false;
+    controls.dampingFactor = 0.06;
+    controls.minDistance   = 2.0;
+    controls.maxDistance   = 8;
+    controls.autoRotate    = false;
     controls.target.set(0, 0.3, 0);
-    controls.maxPolarAngle = Math.PI * 0.72; // prevent flipping under globe
+    controls.maxPolarAngle = Math.PI * 0.72;
     controls.update();
 
-    // ── State ─────────────────────────────────────────────────────────────────
-    let fraction    = 0;   // 0..45 → maps to 1979..2024
+    /* ══════════════════════════════════════════════════════════════════════
+       STATE & INTERPOLATION
+       ══════════════════════════════════════════════════════════════════════ */
+    let fraction    = 0;
     let isPlaying   = false;
     let lastTs      = null;
     let lastFlashed = -1;
@@ -445,54 +581,50 @@
       return ICE_DATA[idx].extent + (ICE_DATA[idx + 1].extent - ICE_DATA[idx].extent) * t;
     }
 
-    // ── UI update ─────────────────────────────────────────────────────────────
-    const yearEl    = document.getElementById('year-text');
-    const extentEl  = document.getElementById('extent-display');
-    const changeEl  = document.getElementById('change-display');
-    const badgeEl   = document.getElementById('record-badge');
-    const scrubber  = document.getElementById('scrubber');
-    const eventEl   = document.getElementById('event-label');
+    /* ── UI refs ─────────────────────────────────────────────────────────── */
+    const yearEl   = document.getElementById('year-text');
+    const extentEl = document.getElementById('extent-display');
+    const changeEl = document.getElementById('change-display');
+    const badgeEl  = document.getElementById('record-badge');
+    const scrubber = document.getElementById('scrubber');
+    const eventEl  = document.getElementById('event-label');
 
     function updateUI(frac) {
-      const extent = getExtent(frac);
-      const year   = Math.round(1979 + frac);
-      const dispY  = Math.min(2024, year);
+      const ext  = getExtent(frac);
+      const year = Math.min(2024, Math.round(1979 + frac));
+      yearEl.textContent   = year;
+      extentEl.textContent = 'Extent: ' + ext.toFixed(2) + ' M km²';
 
-      yearEl.textContent   = dispY;
-      extentEl.textContent = 'Extent: ' + extent.toFixed(2) + ' M km²';
-
-      const pct = ((extent - BASELINE) / BASELINE * 100);
+      const pct = ((ext - BASELINE) / BASELINE * 100);
       if (frac < 0.5) {
         changeEl.textContent = 'Baseline year';
         changeEl.className   = 'neutral';
       } else {
-        const sign = pct >= 0 ? '+' : '';
-        changeEl.textContent = sign + pct.toFixed(1) + '% vs 1979 baseline';
+        changeEl.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(1) + '% vs 1979';
         changeEl.className   = pct >= 0 ? 'gain' : 'loss';
       }
 
-      badgeEl.style.opacity = (dispY === 2012) ? '1' : '0';
+      badgeEl.style.opacity = (year === 2012) ? '1' : '0';
 
-      // Notable year flash
       const nearY = Math.round(1979 + frac);
       if (NOTABLE[nearY] && Math.abs((1979 + frac) - nearY) < 0.35 && lastFlashed !== nearY) {
         lastFlashed = nearY;
-        eventEl.textContent    = NOTABLE[nearY];
-        eventEl.style.opacity  = '1';
+        eventEl.textContent   = NOTABLE[nearY];
+        eventEl.style.opacity = '1';
         setTimeout(() => { eventEl.style.opacity = '0'; }, 2600);
       }
 
       scrubber.value = Math.round(frac * 100);
+      drawSparkline(frac);
     }
 
-    // ── Scrubber ──────────────────────────────────────────────────────────────
+    /* ── Controls ─────────────────────────────────────────────────────────── */
     scrubber.addEventListener('input', e => {
       fraction    = parseInt(e.target.value) / 100;
       lastFlashed = -1;
       updateUI(fraction);
     });
 
-    // ── Autoplay ──────────────────────────────────────────────────────────────
     const autoBtn = document.getElementById('autoplay-btn');
     autoBtn.addEventListener('click', () => {
       isPlaying = !isPlaying;
@@ -501,17 +633,18 @@
       lastTs = null;
     });
 
-    // ── Resize ────────────────────────────────────────────────────────────────
     window.addEventListener('resize', () => {
-      W = container.clientWidth; H = container.clientHeight;
-      camera.aspect = W / H;
+      cW = container.clientWidth; cH = container.clientHeight;
+      camera.aspect = cW / cH;
       camera.updateProjectionMatrix();
-      renderer.setSize(W, H);
+      renderer.setSize(cW, cH);
+      drawSparkline(fraction);
     });
 
-    // ── Render loop ───────────────────────────────────────────────────────────
-    // Slow background rotation speed (radians/sec)
-    const IDLE_ROT = 0.05;
+    /* ══════════════════════════════════════════════════════════════════════
+       RENDER LOOP
+       ══════════════════════════════════════════════════════════════════════ */
+    const IDLE_ROT = 0.08; // rad/s
 
     function animate(ts) {
       requestAnimationFrame(animate);
@@ -520,25 +653,31 @@
         if (lastTs === null) lastTs = ts;
         const dt = (ts - lastTs) / 1000;
         lastTs   = ts;
-        fraction += dt / 0.4; // 1 year per 0.4 s
+        fraction += dt / 0.4;
         if (fraction > 45) { fraction = 0; lastFlashed = -1; }
         updateUI(fraction);
       } else {
         lastTs = null;
-        // Gentle idle rotation
-        globe.rotation.y      += IDLE_ROT * 0.016;
-        iceMesh.rotation.y    += IDLE_ROT * 0.016;
-        iceRingMesh.rotation.y += IDLE_ROT * 0.016;
       }
+
+      // Always rotate gently
+      const rotDelta = IDLE_ROT * 0.016;
+      globe.rotation.y     += rotDelta;
+      iceGroup.rotation.y  += rotDelta;
+      atmoInner.rotation.y += rotDelta * 0.7;
+
+      // Subtle particle shimmer
+      particleMesh.material.opacity = 0.3 + 0.2 * Math.sin(ts * 0.002);
 
       updateIceCap(getExtent(fraction));
       controls.update();
       renderer.render(scene, camera);
     }
 
-    // ── Kick off ──────────────────────────────────────────────────────────────
-    updateUI(0);
+    /* ── Boot ─────────────────────────────────────────────────────────────── */
     updateIceCap(BASELINE);
+    updateUI(0);
+    drawSparkline(0);
     requestAnimationFrame(animate);
   </script>
 </body>
