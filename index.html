@@ -305,7 +305,7 @@
     scene.background = new THREE.Color(0x000510);
 
     const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 1000);
-    camera.position.set(0.5, 2.2, 2.8);
+    camera.position.set(0.3, 2.8, 1.9); // steeper angle — north pole clearly visible
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(W, H);
@@ -356,55 +356,70 @@
       })
     ));
 
-    // ── Ice cap via clipping plane ────────────────────────────────────────────
-    // The clipping plane normal=(0,1,0), constant=-iceEdgeY keeps Y >= iceEdgeY
-    const icePlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    // ── Ice cap — SphereGeometry polar cap (thetaLength approach) ────────────
+    // Using SphereGeometry(thetaStart=0, thetaLength=capAngle) is the most
+    // reliable way to render a polar cap: it generates the actual vertices for
+    // the cap region and doesn't rely on clipping plane uniforms.
+    //
+    // Formula: spherical-cap area A = 2πR²(1−cosθ)  →  cosθ = 1 − A/(2πR²)
+    // The September-minimum extents (7.05 → 3.41 M km²) map to colatitudes
+    // of ~27° → ~19° in visual space (we apply a 2× visual scale so the
+    // change is clearly readable on screen while keeping the data labels exact).
 
-    const iceCapMesh = new THREE.Mesh(
-      new THREE.SphereGeometry(1.004, 128, 64),
-      new THREE.MeshPhongMaterial({
-        color: 0xddeeff,
-        emissive: 0x99bbdd,
-        emissiveIntensity: 0.22,
-        shininess: 120,
-        specular: new THREE.Color(0xffffff),
-        transparent: true,
-        opacity: 0.90,
-        side: THREE.FrontSide,
-        clippingPlanes: [icePlane],
-        clipShadows: false,
-      })
-    );
-    scene.add(iceCapMesh);
+    const iceMat = new THREE.MeshPhongMaterial({
+      color: 0xe8f4ff,
+      emissive: 0x99ccee,
+      emissiveIntensity: 0.35,
+      shininess: 140,
+      specular: new THREE.Color(0xffffff),
+      transparent: true,
+      opacity: 0.93,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
 
-    // Ice cap underside (slightly smaller, facing inward so the edge looks solid)
-    const iceInnerMesh = new THREE.Mesh(
-      new THREE.SphereGeometry(1.001, 128, 64),
-      new THREE.MeshPhongMaterial({
-        color: 0xbbddff,
-        emissive: 0x6699cc,
-        emissiveIntensity: 0.15,
-        shininess: 40,
-        transparent: true,
-        opacity: 0.75,
-        side: THREE.BackSide,
-        clippingPlanes: [icePlane],
-        clipShadows: false,
-      })
-    );
-    scene.add(iceInnerMesh);
+    const iceEdgeMat = new THREE.MeshBasicMaterial({
+      color: 0x88ddff,
+      transparent: true,
+      opacity: 0.6,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
 
-    function extentToEdgeY(extentMkm2) {
-      const R = 6371;
+    // Start with a placeholder geometry; rebuilt in updateIceCap
+    let iceMesh     = new THREE.Mesh(new THREE.SphereGeometry(1.004, 64, 16, 0, Math.PI*2, 0, 0.01), iceMat);
+    let iceRingMesh = new THREE.Mesh(new THREE.TorusGeometry(0.01, 0.003, 8, 64), iceEdgeMat);
+    scene.add(iceMesh);
+    scene.add(iceRingMesh);
+
+    // Convert extent (M km²) to colatitude angle (radians from north pole)
+    // Visual scale factor 2.0 makes the change obvious on screen; labels show real data.
+    const VISUAL_SCALE = 2.0;
+    function extentToCapAngle(extentMkm2) {
+      const R    = 6371;
       const area = extentMkm2 * 1e6;
-      const cosColatitude = Math.max(-1, Math.min(1, 1 - area / (2 * Math.PI * R * R)));
-      return Math.cos(Math.acos(cosColatitude)); // = cosColatitude, but explicit for clarity
+      const cosC = Math.max(-1, Math.min(1, 1 - area / (2 * Math.PI * R * R)));
+      return Math.acos(cosC) * VISUAL_SCALE;
     }
 
+    let _lastCapAngle = -1;
+
     function updateIceCap(extentMkm2) {
-      const iceEdgeY = extentToEdgeY(extentMkm2);
-      // keep where Y >= iceEdgeY: normal (0,1,0), constant -iceEdgeY
-      icePlane.constant = -iceEdgeY;
+      const capAngle = Math.min(extentToCapAngle(extentMkm2), Math.PI * 0.48);
+      if (Math.abs(capAngle - _lastCapAngle) < 0.0008) return;
+      _lastCapAngle = capAngle;
+
+      // Rebuild polar-cap geometry
+      iceMesh.geometry.dispose();
+      iceMesh.geometry = new THREE.SphereGeometry(1.004, 64, 20, 0, Math.PI * 2, 0, capAngle);
+
+      // Reposition the edge ring at the cap boundary latitude
+      const edgeY = Math.cos(capAngle);              // world-space Y of ice edge
+      const edgeR = Math.sin(capAngle) * 1.0045;     // horizontal radius of edge circle
+      iceRingMesh.geometry.dispose();
+      iceRingMesh.geometry = new THREE.TorusGeometry(edgeR, 0.004, 8, 80);
+      iceRingMesh.position.y  = edgeY;
+      iceRingMesh.rotation.x  = Math.PI / 2;
     }
 
     // ── OrbitControls ─────────────────────────────────────────────────────────
@@ -414,7 +429,8 @@
     controls.minDistance = 1.5;
     controls.maxDistance = 6;
     controls.autoRotate = false;
-    controls.target.set(0, 0.2, 0);
+    controls.target.set(0, 0.3, 0);
+    controls.maxPolarAngle = Math.PI * 0.72; // prevent flipping under globe
     controls.update();
 
     // ── State ─────────────────────────────────────────────────────────────────
@@ -510,9 +526,9 @@
       } else {
         lastTs = null;
         // Gentle idle rotation
-        globe.rotation.y       += IDLE_ROT * 0.016;
-        iceCapMesh.rotation.y  += IDLE_ROT * 0.016;
-        iceInnerMesh.rotation.y+= IDLE_ROT * 0.016;
+        globe.rotation.y      += IDLE_ROT * 0.016;
+        iceMesh.rotation.y    += IDLE_ROT * 0.016;
+        iceRingMesh.rotation.y += IDLE_ROT * 0.016;
       }
 
       updateIceCap(getExtent(fraction));
