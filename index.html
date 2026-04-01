@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arctic Sea Ice Loss — 1979–2024</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #000510;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: white;
+      overflow: hidden;
+    }
+    #canvas-container { width: 100vw; height: 100vh; }
+
+    /* ── Bottom controls ── */
+    #controls {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(0, 5, 20, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 14px 32px 16px;
+      border-top: 1px solid rgba(100, 160, 255, 0.2);
+    }
+    .controls-top {
+      display: flex;
+      align-items: flex-end;
+      gap: 24px;
+    }
+    #year-display {
+      font-size: 3rem;
+      font-weight: 700;
+      color: #60cfff;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #extent-display {
+      font-size: 1rem;
+      color: #aac8ff;
+      margin-top: 4px;
+    }
+    #change-display {
+      font-size: 0.9rem;
+      margin-top: 3px;
+    }
+    .loss { color: #ff6666; }
+    .gain { color: #66ffbb; }
+    .neutral { color: #aac8ff; }
+
+    #autoplay-btn {
+      margin-left: auto;
+      background: rgba(96, 207, 255, 0.12);
+      border: 1px solid rgba(96, 207, 255, 0.35);
+      color: #60cfff;
+      padding: 9px 22px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-family: inherit;
+      letter-spacing: 0.07em;
+      transition: background 0.2s, border-color 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    #autoplay-btn:hover {
+      background: rgba(96, 207, 255, 0.25);
+      border-color: rgba(96, 207, 255, 0.6);
+    }
+    #autoplay-btn.playing {
+      background: rgba(255, 160, 80, 0.12);
+      border-color: rgba(255, 160, 80, 0.4);
+      color: #ffaa55;
+    }
+
+    input[type=range] {
+      width: 100%;
+      margin: 10px 0 5px;
+      accent-color: #60cfff;
+      cursor: pointer;
+      height: 4px;
+    }
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: #445566;
+      margin-bottom: 6px;
+    }
+
+    /* ── Info card (top-left) ── */
+    #info-card {
+      position: fixed; top: 24px; left: 24px;
+      background: rgba(0, 5, 20, 0.76);
+      border: 1px solid rgba(100, 160, 255, 0.22);
+      border-radius: 12px;
+      padding: 16px 20px;
+      max-width: 272px;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      color: #aac8ff;
+      pointer-events: none;
+      user-select: none;
+    }
+    #info-card h3 {
+      color: #60cfff;
+      margin: 0 0 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+    #info-card .subtitle {
+      color: #7799bb;
+      font-size: 0.78rem;
+      margin-bottom: 6px;
+    }
+    #info-card .source {
+      color: #4d6a88;
+      font-size: 0.72rem;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+    .stats-divider {
+      border: none;
+      border-top: 1px solid rgba(100, 160, 255, 0.18);
+      margin: 10px 0 10px;
+    }
+    .stat-line {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+    .stat-dot { flex-shrink: 0; }
+
+    /* ── Event flash label ── */
+    #event-label {
+      position: fixed;
+      top: 42%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(20, 0, 0, 0.75);
+      border: 1px solid rgba(255, 80, 80, 0.45);
+      border-radius: 10px;
+      padding: 10px 20px;
+      font-size: 0.95rem;
+      color: #ffaaaa;
+      text-align: center;
+      pointer-events: none;
+      user-select: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      white-space: nowrap;
+    }
+
+    /* ── Record badge ── */
+    #record-badge {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(255, 50, 50, 0.18);
+      border: 1px solid rgba(255, 80, 80, 0.4);
+      border-radius: 5px;
+      padding: 2px 8px;
+      font-size: 0.65rem;
+      color: #ff8888;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.4s;
+      vertical-align: middle;
+    }
+
+    /* ── Sources footer ── */
+    .sources-footer {
+      margin-top: 6px;
+      font-size: 0.63rem;
+      color: #334455;
+      text-align: center;
+      line-height: 1.5;
+    }
+    .sources-footer a {
+      color: #4d6a88;
+      text-decoration: none;
+    }
+    .sources-footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <!-- Info card -->
+  <div id="info-card">
+    <h3>Arctic Sea Ice Minimum Extent</h3>
+    <div class="subtitle">September annual minimum, 1979–2024</div>
+    <div class="source">
+      Source: NSIDC Sea Ice Index v3<br>
+      (Fetterer et al., updated 2024)<br>
+      nsidc.org/data/seaice_index
+    </div>
+    <hr class="stats-divider">
+    <div class="stat-line"><span class="stat-dot" style="color:#60cfff">◼</span><span>1979 baseline: 7.05 M km²</span></div>
+    <div class="stat-line"><span class="stat-dot" style="color:#ff5555">◼</span><span>2012 record low: 3.41 M km²</span></div>
+    <div class="stat-line"><span class="stat-dot" style="color:#aac8ff">◼</span><span>2024 extent: 4.28 M km²</span></div>
+    <div class="stat-line"><span class="stat-dot" style="color:#ff9966">◼</span><span>Total loss: ~39% since 1979</span></div>
+  </div>
+
+  <!-- Notable year flash -->
+  <div id="event-label"></div>
+
+  <!-- Controls -->
+  <div id="controls">
+    <div class="controls-top">
+      <div>
+        <div id="year-display">
+          <span id="year-text">1979</span>
+          <span id="record-badge">🚨 RECORD LOW</span>
+        </div>
+        <div id="extent-display">Extent: 7.05 M km²</div>
+        <div id="change-display" class="neutral">Baseline year</div>
+      </div>
+      <button id="autoplay-btn">▶ AUTOPLAY</button>
+    </div>
+    <input type="range" id="scrubber" min="0" max="4500" value="0" step="1">
+    <div class="slider-labels">
+      <span>1979</span><span>1990</span><span>2000</span><span>2010</span><span>2024</span>
+    </div>
+    <div class="sources-footer">
+      Data: NSIDC Sea Ice Index v3 — Fetterer, F., K. Knowles, W. N. Meier, M. Savoie, and A. K. Windnagel. 2017, updated 2024.
+      Sea Ice Index, Version 3. Boulder, CO: NSIDC.
+      <a href="https://doi.org/10.7265/N5K072F8" target="_blank">doi.org/10.7265/N5K072F8</a>
+      &nbsp;|&nbsp;
+      <a href="https://github.com/arrakistacos/arctic-ice-globe" target="_blank">arrakistacos/arctic-ice-globe</a>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script>
+    // ── Data ────────────────────────────────────────────────────────────────
+    const ICE_DATA = [
+      { year: 1979, extent: 7.05 },
+      { year: 1980, extent: 7.85 },
+      { year: 1981, extent: 7.25 },
+      { year: 1982, extent: 7.45 },
+      { year: 1983, extent: 7.52 },
+      { year: 1984, extent: 7.18 },
+      { year: 1985, extent: 6.93 },
+      { year: 1986, extent: 7.54 },
+      { year: 1987, extent: 7.48 },
+      { year: 1988, extent: 7.49 },
+      { year: 1989, extent: 7.04 },
+      { year: 1990, extent: 6.24 },
+      { year: 1991, extent: 6.55 },
+      { year: 1992, extent: 7.55 },
+      { year: 1993, extent: 6.50 },
+      { year: 1994, extent: 7.18 },
+      { year: 1995, extent: 6.13 },
+      { year: 1996, extent: 7.88 },
+      { year: 1997, extent: 6.74 },
+      { year: 1998, extent: 6.56 },
+      { year: 1999, extent: 6.24 },
+      { year: 2000, extent: 6.32 },
+      { year: 2001, extent: 6.75 },
+      { year: 2002, extent: 5.96 },
+      { year: 2003, extent: 6.15 },
+      { year: 2004, extent: 6.05 },
+      { year: 2005, extent: 5.57 },
+      { year: 2006, extent: 5.92 },
+      { year: 2007, extent: 4.17 },
+      { year: 2008, extent: 4.67 },
+      { year: 2009, extent: 5.10 },
+      { year: 2010, extent: 4.90 },
+      { year: 2011, extent: 4.61 },
+      { year: 2012, extent: 3.41 },
+      { year: 2013, extent: 5.10 },
+      { year: 2014, extent: 5.02 },
+      { year: 2015, extent: 4.41 },
+      { year: 2016, extent: 4.14 },
+      { year: 2017, extent: 4.64 },
+      { year: 2018, extent: 4.59 },
+      { year: 2019, extent: 4.14 },
+      { year: 2020, extent: 3.74 },
+      { year: 2021, extent: 4.72 },
+      { year: 2022, extent: 4.87 },
+      { year: 2023, extent: 4.23 },
+      { year: 2024, extent: 4.28 },
+    ];
+
+    const NOTABLE = {
+      2007: 'Previous record low (4.17 M km²)',
+      2012: '🚨 ALL-TIME RECORD LOW (3.41 M km²)',
+      2020: '2nd lowest on record (3.74 M km²)',
+    };
+
+    const BASELINE = ICE_DATA[0].extent; // 7.05
+
+    // ── Scene ────────────────────────────────────────────────────────────────
+    const container = document.getElementById('canvas-container');
+    let W = container.clientWidth, H = container.clientHeight;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000510);
+
+    const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 1000);
+    camera.position.set(0.5, 2.2, 2.8);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(W, H);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.localClippingEnabled = true;
+    container.appendChild(renderer.domElement);
+
+    // ── Stars ────────────────────────────────────────────────────────────────
+    const starPositions = new Float32Array(3000 * 3);
+    for (let i = 0; i < 9000; i++) starPositions[i] = (Math.random() - 0.5) * 400;
+    const starGeo = new THREE.BufferGeometry();
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.15 })));
+
+    // ── Lighting ─────────────────────────────────────────────────────────────
+    scene.add(new THREE.AmbientLight(0x334455, 1.3));
+    const sun = new THREE.DirectionalLight(0xfff5e0, 2.5);
+    sun.position.set(5, 3, 5);
+    scene.add(sun);
+    const fill = new THREE.DirectionalLight(0x4466aa, 0.4);
+    fill.position.set(-5, -2, -3);
+    scene.add(fill);
+
+    // ── Earth ────────────────────────────────────────────────────────────────
+    const loader = new THREE.TextureLoader();
+    const earthTex  = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg');
+    const earthSpec = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_specular_2048.jpg');
+
+    const globe = new THREE.Mesh(
+      new THREE.SphereGeometry(1, 64, 64),
+      new THREE.MeshPhongMaterial({
+        map: earthTex,
+        specularMap: earthSpec,
+        specular: new THREE.Color(0x4488ff),
+        shininess: 25,
+      })
+    );
+    scene.add(globe);
+
+    // Atmosphere glow
+    scene.add(new THREE.Mesh(
+      new THREE.SphereGeometry(1.022, 64, 64),
+      new THREE.MeshPhongMaterial({
+        color: 0x3366cc,
+        transparent: true,
+        opacity: 0.07,
+        side: THREE.FrontSide,
+      })
+    ));
+
+    // ── Ice cap via clipping plane ────────────────────────────────────────────
+    // The clipping plane normal=(0,1,0), constant=-iceEdgeY keeps Y >= iceEdgeY
+    const icePlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+
+    const iceCapMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(1.004, 128, 64),
+      new THREE.MeshPhongMaterial({
+        color: 0xddeeff,
+        emissive: 0x99bbdd,
+        emissiveIntensity: 0.22,
+        shininess: 120,
+        specular: new THREE.Color(0xffffff),
+        transparent: true,
+        opacity: 0.90,
+        side: THREE.FrontSide,
+        clippingPlanes: [icePlane],
+        clipShadows: false,
+      })
+    );
+    scene.add(iceCapMesh);
+
+    // Ice cap underside (slightly smaller, facing inward so the edge looks solid)
+    const iceInnerMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(1.001, 128, 64),
+      new THREE.MeshPhongMaterial({
+        color: 0xbbddff,
+        emissive: 0x6699cc,
+        emissiveIntensity: 0.15,
+        shininess: 40,
+        transparent: true,
+        opacity: 0.75,
+        side: THREE.BackSide,
+        clippingPlanes: [icePlane],
+        clipShadows: false,
+      })
+    );
+    scene.add(iceInnerMesh);
+
+    function extentToEdgeY(extentMkm2) {
+      const R = 6371;
+      const area = extentMkm2 * 1e6;
+      const cosColatitude = Math.max(-1, Math.min(1, 1 - area / (2 * Math.PI * R * R)));
+      return Math.cos(Math.acos(cosColatitude)); // = cosColatitude, but explicit for clarity
+    }
+
+    function updateIceCap(extentMkm2) {
+      const iceEdgeY = extentToEdgeY(extentMkm2);
+      // keep where Y >= iceEdgeY: normal (0,1,0), constant -iceEdgeY
+      icePlane.constant = -iceEdgeY;
+    }
+
+    // ── OrbitControls ─────────────────────────────────────────────────────────
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 1.5;
+    controls.maxDistance = 6;
+    controls.autoRotate = false;
+    controls.target.set(0, 0.2, 0);
+    controls.update();
+
+    // ── State ─────────────────────────────────────────────────────────────────
+    let fraction    = 0;   // 0..45 → maps to 1979..2024
+    let isPlaying   = false;
+    let lastTs      = null;
+    let lastFlashed = -1;
+
+    function getExtent(frac) {
+      const idx = Math.min(Math.floor(frac), ICE_DATA.length - 2);
+      const t   = frac - idx;
+      return ICE_DATA[idx].extent + (ICE_DATA[idx + 1].extent - ICE_DATA[idx].extent) * t;
+    }
+
+    // ── UI update ─────────────────────────────────────────────────────────────
+    const yearEl    = document.getElementById('year-text');
+    const extentEl  = document.getElementById('extent-display');
+    const changeEl  = document.getElementById('change-display');
+    const badgeEl   = document.getElementById('record-badge');
+    const scrubber  = document.getElementById('scrubber');
+    const eventEl   = document.getElementById('event-label');
+
+    function updateUI(frac) {
+      const extent = getExtent(frac);
+      const year   = Math.round(1979 + frac);
+      const dispY  = Math.min(2024, year);
+
+      yearEl.textContent   = dispY;
+      extentEl.textContent = 'Extent: ' + extent.toFixed(2) + ' M km²';
+
+      const pct = ((extent - BASELINE) / BASELINE * 100);
+      if (frac < 0.5) {
+        changeEl.textContent = 'Baseline year';
+        changeEl.className   = 'neutral';
+      } else {
+        const sign = pct >= 0 ? '+' : '';
+        changeEl.textContent = sign + pct.toFixed(1) + '% vs 1979 baseline';
+        changeEl.className   = pct >= 0 ? 'gain' : 'loss';
+      }
+
+      badgeEl.style.opacity = (dispY === 2012) ? '1' : '0';
+
+      // Notable year flash
+      const nearY = Math.round(1979 + frac);
+      if (NOTABLE[nearY] && Math.abs((1979 + frac) - nearY) < 0.35 && lastFlashed !== nearY) {
+        lastFlashed = nearY;
+        eventEl.textContent    = NOTABLE[nearY];
+        eventEl.style.opacity  = '1';
+        setTimeout(() => { eventEl.style.opacity = '0'; }, 2600);
+      }
+
+      scrubber.value = Math.round(frac * 100);
+    }
+
+    // ── Scrubber ──────────────────────────────────────────────────────────────
+    scrubber.addEventListener('input', e => {
+      fraction    = parseInt(e.target.value) / 100;
+      lastFlashed = -1;
+      updateUI(fraction);
+    });
+
+    // ── Autoplay ──────────────────────────────────────────────────────────────
+    const autoBtn = document.getElementById('autoplay-btn');
+    autoBtn.addEventListener('click', () => {
+      isPlaying = !isPlaying;
+      autoBtn.textContent = isPlaying ? '⏸ PAUSE' : '▶ AUTOPLAY';
+      autoBtn.classList.toggle('playing', isPlaying);
+      lastTs = null;
+    });
+
+    // ── Resize ────────────────────────────────────────────────────────────────
+    window.addEventListener('resize', () => {
+      W = container.clientWidth; H = container.clientHeight;
+      camera.aspect = W / H;
+      camera.updateProjectionMatrix();
+      renderer.setSize(W, H);
+    });
+
+    // ── Render loop ───────────────────────────────────────────────────────────
+    // Slow background rotation speed (radians/sec)
+    const IDLE_ROT = 0.05;
+
+    function animate(ts) {
+      requestAnimationFrame(animate);
+
+      if (isPlaying) {
+        if (lastTs === null) lastTs = ts;
+        const dt = (ts - lastTs) / 1000;
+        lastTs   = ts;
+        fraction += dt / 0.4; // 1 year per 0.4 s
+        if (fraction > 45) { fraction = 0; lastFlashed = -1; }
+        updateUI(fraction);
+      } else {
+        lastTs = null;
+        // Gentle idle rotation
+        globe.rotation.y       += IDLE_ROT * 0.016;
+        iceCapMesh.rotation.y  += IDLE_ROT * 0.016;
+        iceInnerMesh.rotation.y+= IDLE_ROT * 0.016;
+      }
+
+      updateIceCap(getExtent(fraction));
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    // ── Kick off ──────────────────────────────────────────────────────────────
+    updateUI(0);
+    updateIceCap(BASELINE);
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
